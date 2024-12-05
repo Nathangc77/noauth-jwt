@@ -30,6 +30,7 @@ public class ResourceServerConfig {
 	@Value("${cors.origins}")
 	private String corsOrigins;
 
+	//Config para liberar o H2
 	@Bean
 	@Profile("test")
 	@Order(1)
@@ -40,17 +41,21 @@ public class ResourceServerConfig {
 		return http.build();
 	}
 
+	//Liberação do Cors para os hosts autorizados
 	@Bean
 	@Order(3)
 	public SecurityFilterChain rsSecurityFilterChain(HttpSecurity http) throws Exception {
-
+		//CSRF: é um tipo de ataque de websites maliciosos, em aplicações que não guardam estados o recurso pode ser desabilitado
 		http.csrf(csrf -> csrf.disable());
+		//permição de recursos
 		http.authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
+		//Config de token
 		http.oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer.jwt(Customizer.withDefaults()));
 		http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 		return http.build();
 	}
 
+	//Config do token JWT
 	@Bean
 	public JwtAuthenticationConverter jwtAuthenticationConverter() {
 		JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
@@ -62,6 +67,7 @@ public class ResourceServerConfig {
 		return jwtAuthenticationConverter;
 	}
 
+	//Os dois métodos abaixo são configurações de Cors
 	@Bean
 	CorsConfigurationSource corsConfigurationSource() {
 

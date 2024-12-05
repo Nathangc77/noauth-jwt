@@ -70,9 +70,10 @@ public class AuthorizationServerConfig {
 	@Bean
 	@Order(2)
 	public SecurityFilterChain asSecurityFilterChain(HttpSecurity http) throws Exception {
-
+		//Configurando o autorizationserver para funcionar junto com spring security
 		OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
 
+		//Configurar token(codificação, formato, assinatura)
 		// @formatter:off
 		http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
 			.tokenEndpoint(tokenEndpoint -> tokenEndpoint
@@ -95,11 +96,13 @@ public class AuthorizationServerConfig {
 		return new InMemoryOAuth2AuthorizationConsentService();
 	}
 
+	//Configurando password encoder
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 
+	//Config para registrar o client para acessar a aplicação
 	@Bean
 	public RegisteredClientRepository registeredClientRepository() {
 		// @formatter:off
@@ -109,7 +112,7 @@ public class AuthorizationServerConfig {
 			.clientSecret(passwordEncoder().encode(clientSecret))
 			.scope("read")
 			.scope("write")
-			.authorizationGrantType(new AuthorizationGrantType("password"))
+			.authorizationGrantType(new AuthorizationGrantType("password"))//tipo do grant_type
 			.tokenSettings(tokenSettings())
 			.clientSettings(clientSettings())
 			.build();
@@ -118,6 +121,7 @@ public class AuthorizationServerConfig {
 		return new InMemoryRegisteredClientRepository(registeredClient);
 	}
 
+	//Config do token(Duration)
 	@Bean
 	public TokenSettings tokenSettings() {
 		// @formatter:off
@@ -128,16 +132,19 @@ public class AuthorizationServerConfig {
 		// @formatter:on
 	}
 
+	//Instanciando configurações da aplicação cient
 	@Bean
 	public ClientSettings clientSettings() {
 		return ClientSettings.builder().build();
 	}
 
+	//Config necessária
 	@Bean
 	public AuthorizationServerSettings authorizationServerSettings() {
 		return AuthorizationServerSettings.builder().build();
 	}
 
+	//Configurações de token
 	@Bean
 	public OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator() {
 		NimbusJwtEncoder jwtEncoder = new NimbusJwtEncoder(jwkSource());
@@ -147,6 +154,8 @@ public class AuthorizationServerConfig {
 		return new DelegatingOAuth2TokenGenerator(jwtGenerator, accessTokenGenerator);
 	}
 
+	//Customizador do token
+	//Clains são as reinvidicações e customiza o payload do token
 	@Bean
 	public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer() {
 		return context -> {
@@ -163,11 +172,13 @@ public class AuthorizationServerConfig {
 		};
 	}
 
+	//Decodificador do token
 	@Bean
 	public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
 		return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
 	}
 
+	//3 métodos para configuração do algorítimo RSA que gera a chave para encriptar os dados no token
 	@Bean
 	public JWKSource<SecurityContext> jwkSource() {
 		RSAKey rsaKey = generateRsa();
